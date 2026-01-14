@@ -28,5 +28,3 @@ yarn-error.log*
 *.swp
 *.swo
 *~
-
-# Package locks (opcional, algunos prefieren subirlo)
