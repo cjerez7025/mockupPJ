@@ -24,7 +24,7 @@ export const PLANS = {
       maxFamilies: 1,
       maxMembers: 5,
       maxPosts: 50,
-      maxStorageBytes: 1073741824, // 1GB
+      maxStorageBytes: 1073741824,
       maxVideoSeconds: 30,
     },
     cta: 'Comenzar Gratis',
@@ -35,10 +35,10 @@ export const PLANS = {
   PERSONAL: {
     id: 'personal',
     name: 'Personal',
-    price: 9990, // CLP
+    price: 9990,
     priceUSD: 12,
     interval: 'month',
-    stripePriceId: 'price_personal_monthly', // Reemplazar con ID real de Stripe
+    stripePriceId: 'price_personal_monthly',
     features: {
       families: 1,
       members: 'Ilimitados',
@@ -56,9 +56,9 @@ export const PLANS = {
     },
     limits: {
       maxFamilies: 1,
-      maxMembers: -1, // Ilimitado
+      maxMembers: -1,
       maxPosts: -1,
-      maxStorageBytes: 10737418240, // 10GB
+      maxStorageBytes: 10737418240,
       maxVideoSeconds: 120,
     },
     cta: 'Comenzar Prueba',
@@ -70,7 +70,7 @@ export const PLANS = {
   FAMILY_PLUS: {
     id: 'family_plus',
     name: 'Familiar Plus',
-    price: 16990, // CLP
+    price: 16990,
     priceUSD: 20,
     interval: 'month',
     stripePriceId: 'price_family_monthly',
@@ -93,7 +93,7 @@ export const PLANS = {
       maxFamilies: 3,
       maxMembers: -1,
       maxPosts: -1,
-      maxStorageBytes: 53687091200, // 50GB
+      maxStorageBytes: 53687091200,
       maxVideoSeconds: 300,
     },
     cta: 'Suscribirse',
@@ -104,7 +104,7 @@ export const PLANS = {
   ORGANIZATION: {
     id: 'organization',
     name: 'Organizaciones',
-    price: 99000, // CLP
+    price: 99000,
     priceUSD: 120,
     interval: 'month',
     stripePriceId: 'price_org_monthly',
@@ -127,7 +127,7 @@ export const PLANS = {
       maxFamilies: 25,
       maxMembers: -1,
       maxPosts: -1,
-      maxStorageBytes: 536870912000, // 500GB
+      maxStorageBytes: 536870912000,
       maxVideoSeconds: 600,
     },
     cta: 'Contactar Ventas',
@@ -150,6 +150,6 @@ export const checkLimit = (userPlan, limitType, currentValue) => {
   const plan = getPlanById(userPlan);
   const limit = plan?.limits?.[limitType];
   
-  if (limit === -1) return true; // Ilimitado
+  if (limit === -1) return true;
   return currentValue < limit;
 };

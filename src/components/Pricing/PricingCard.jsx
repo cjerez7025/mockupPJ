@@ -2,7 +2,7 @@
 import React from 'react';
 import { Check, X, Star } from 'lucide-react';
 import './PricingCard.css';
-
+//import PricingCard from '../components/Pricing/PricingCard';
 const PricingCard = ({ plan, onSelect, currency = 'CLP', isCurrentPlan = false }) => {
   const formatPrice = (price) => {
     if (price === 0) return 'Gratis';
