@@ -30,4 +30,3 @@ yarn-error.log*
 *~
 
 # Package locks (opcional, algunos prefieren subirlo)
-# package-lock.json
