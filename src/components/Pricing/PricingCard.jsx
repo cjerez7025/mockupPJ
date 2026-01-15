@@ -1,116 +1,143 @@
-// src/components/Pricing/PricingCard.jsx
-import React from 'react';
-import { Check, X, Star } from 'lucide-react';
+import { Check, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import FeatureTooltip from './FeatureTooltip';
+import { featureExplanations } from '../../config/featureExplanations';
 import './PricingCard.css';
-//import PricingCard from '../components/Pricing/PricingCard';
-const PricingCard = ({ plan, onSelect, currency = 'CLP', isCurrentPlan = false }) => {
-  const formatPrice = (price) => {
-    if (price === 0) return 'Gratis';
-    if (currency === 'CLP') {
-      return `$${price.toLocaleString('es-CL')}`;
-    }
-    return `$${plan.priceUSD}`;
+
+export default function PricingCard({ plan, isPopular }) {
+  const navigate = useNavigate();
+
+  const handleSelectPlan = () => {
+    navigate('/checkout', { state: { plan } });
   };
 
-  const renderFeature = (label, value, highlight = false) => {
-    const isIncluded = value !== false && value !== 0;
-    const displayValue = typeof value === 'boolean' 
-      ? '' 
-      : typeof value === 'string' 
-        ? `: ${value}` 
-        : value > 0 
-          ? `: ${value}seg` 
-          : '';
-
-    return (
-      <div className={`feature ${isIncluded ? 'included' : 'excluded'} ${highlight ? 'highlight' : ''}`}>
-        {isIncluded ? (
-          <Check size={18} className="feature-icon check" />
-        ) : (
-          <X size={18} className="feature-icon x" />
-        )}
-        <span className="feature-text">
-          {label}{displayValue}
-        </span>
-      </div>
-    );
+  const formatLimit = (value) => {
+    if (value === 'unlimited') return 'Ilimitados';
+    if (value === 'infinite') return 'Ilimitado';
+    return value;
   };
 
   return (
-    <div className={`pricing-card ${plan.popular ? 'popular' : ''} ${isCurrentPlan ? 'current' : ''}`}>
-      {plan.popular && (
-        <div className="popular-badge">
-          <Star size={14} fill="currentColor" />
-          <span>Más Popular</span>
-        </div>
-      )}
+    <div className={`pricing-card ${isPopular ? 'popular' : ''}`}>
+      {isPopular && <div className="popular-badge">Más Popular</div>}
       
-      {isCurrentPlan && (
-        <div className="current-plan-badge">Plan Actual</div>
-      )}
-      
-      <div className="plan-header">
+      <div className="card-header">
         <h3 className="plan-name">{plan.name}</h3>
+        <div className="price-container">
+          <span className="currency">$</span>
+          <span className="price">{plan.price.toLocaleString('es-CL')}</span>
+          <span className="period">/{plan.billingCycle}</span>
+        </div>
         <p className="plan-description">{plan.description}</p>
-        
-        <div className="plan-price">
-          <span className="price-amount">{formatPrice(plan.price)}</span>
-          {plan.price > 0 && (
-            <span className="price-interval">
-              /{plan.interval === 'month' ? 'mes' : 'año'}
-            </span>
-          )}
-        </div>
-        
-        {plan.trial && (
-          <div className="trial-badge">
-            {plan.trial} días de prueba gratis
-          </div>
-        )}
       </div>
 
-      <div className="plan-features">
-        <div className="features-section">
-          <h4 className="features-title">Características incluidas:</h4>
-          {renderFeature('Familias', plan.features.families, true)}
-          {renderFeature('Miembros', plan.features.members, true)}
-          {renderFeature('Publicaciones', plan.features.posts, true)}
-          {renderFeature('Almacenamiento', plan.features.storage, true)}
-          {renderFeature('Duración de videos', plan.features.videoLength)}
+      <div className="card-body">
+        <div className="limits-section">
+          <h4 className="section-title">Características incluidas:</h4>
+          <ul className="limits-list">
+            <li className="limit-item">
+              <span className="limit-label">
+                Familias: 
+                <FeatureTooltip {...featureExplanations.families} />
+              </span>
+              <span className="limit-value">{formatLimit(plan.limits.families)}</span>
+            </li>
+            <li className="limit-item">
+              <span className="limit-label">
+                Miembros: 
+                <FeatureTooltip {...featureExplanations.members} />
+              </span>
+              <span className="limit-value">{formatLimit(plan.limits.members)}</span>
+            </li>
+            <li className="limit-item">
+              <span className="limit-label">
+                Publicaciones: 
+                <FeatureTooltip {...featureExplanations.posts} />
+              </span>
+              <span className="limit-value">{formatLimit(plan.limits.posts)}</span>
+            </li>
+            <li className="limit-item">
+              <span className="limit-label">
+                Almacenamiento: 
+                <FeatureTooltip {...featureExplanations.storage} />
+              </span>
+              <span className="limit-value">{plan.limits.storage}</span>
+            </li>
+            <li className="limit-item">
+              <span className="limit-label">
+                Duración de videos: 
+                <FeatureTooltip {...featureExplanations.videoDuration} />
+              </span>
+              <span className="limit-value">{plan.limits.videoDuration}</span>
+            </li>
+          </ul>
         </div>
-        
+
         <div className="features-section">
-          <h4 className="features-title">Funciones:</h4>
-          {renderFeature('Estadísticas de uso', plan.features.analytics)}
-          {renderFeature('Videollamadas integradas', plan.features.videoCall)}
-          {renderFeature('Sin marca de agua', plan.features.branding)}
-          {renderFeature('Dominio personalizado', plan.features.customDomain)}
-          {renderFeature('Panel administrativo', plan.features.adminDashboard)}
-          {renderFeature('Invitaciones masivas', plan.features.bulkInvites)}
-          {renderFeature('Reportes y exportación', plan.features.reporting)}
+          <h4 className="section-title">Funciones:</h4>
+          <ul className="features-list">
+            {plan.features.map((feature, index) => (
+              <li key={index} className="feature-item">
+                {feature.included ? (
+                  <Check className="feature-icon check" size={18} />
+                ) : (
+                  <X className="feature-icon x" size={18} />
+                )}
+                <span className={feature.included ? '' : 'disabled'}>
+                  {feature.name}
+                  {feature.included && getFeatureTooltip(feature.name)}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
-        
-        <div className="features-section">
-          <h4 className="features-title">Soporte:</h4>
-          {renderFeature('Nivel de soporte', plan.features.support, true)}
+
+        <div className="support-section">
+          <h4 className="section-title">Soporte:</h4>
+          <p className="support-text">
+            Nivel de soporte: {plan.support.level}
+            {getSupportTooltip(plan.support.level)}
+          </p>
         </div>
       </div>
 
-      <button 
-        className={`plan-cta ${plan.popular ? 'primary' : 'secondary'} ${isCurrentPlan ? 'disabled' : ''}`}
-        onClick={() => !isCurrentPlan && onSelect(plan)}
-        disabled={isCurrentPlan}
-      >
-        {isCurrentPlan ? 'Plan Actual' : plan.cta}
-      </button>
-      
-      {plan.custom && (
-        <p className="custom-note">
-          * Plan personalizable según tus necesidades
-        </p>
-      )}
+      <div className="card-footer">
+        <button 
+          className={`select-button ${isPopular ? 'popular' : ''}`}
+          onClick={handleSelectPlan}
+        >
+          Seleccionar {plan.name}
+        </button>
+      </div>
     </div>
   );
-};
+}
 
-export default PricingCard;
+// Función auxiliar para obtener el tooltip correcto según el nombre de la función
+function getFeatureTooltip(featureName) {
+  const tooltipMap = {
+    'Estadísticas de uso': featureExplanations.statistics,
+    'Estadísticas básicas': featureExplanations.statistics,
+    'Estadísticas avanzadas': featureExplanations.statistics,
+    'Videollamadas integradas': featureExplanations.videoCalls,
+    'Sin marca de agua': featureExplanations.noWatermark,
+    'Dominio personalizado': featureExplanations.customDomain,
+    'Panel administrativo': featureExplanations.adminPanel,
+    'Invitaciones masivas': featureExplanations.massInvites,
+    'Reportes y exportación': featureExplanations.reports,
+  };
+
+  const explanation = tooltipMap[featureName];
+  return explanation ? <FeatureTooltip {...explanation} /> : null;
+}
+
+// Función auxiliar para obtener el tooltip de soporte
+function getSupportTooltip(supportLevel) {
+  if (supportLevel.includes('24/7')) {
+    return <FeatureTooltip {...featureExplanations.dedicatedSupport} />;
+  } else if (supportLevel.includes('24h')) {
+    return <FeatureTooltip {...featureExplanations.prioritySupport} />;
+  } else {
+    return <FeatureTooltip {...featureExplanations.emailSupport} />;
+  }
+}
