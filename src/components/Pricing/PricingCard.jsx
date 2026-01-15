@@ -4,140 +4,188 @@ import FeatureTooltip from './FeatureTooltip';
 import { featureExplanations } from '../../config/featureExplanations';
 import './PricingCard.css';
 
-export default function PricingCard({ plan, isPopular }) {
+export default function PricingCard({ plan, currency = 'CLP', onSelect, isCurrentPlan }) {
   const navigate = useNavigate();
 
   const handleSelectPlan = () => {
-    navigate('/checkout', { state: { plan } });
+    if (onSelect) {
+      onSelect(plan);
+    } else {
+      navigate(`/checkout?plan=${plan.id}`);
+    }
   };
 
   const formatLimit = (value) => {
-    if (value === 'unlimited') return 'Ilimitados';
-    if (value === 'infinite') return 'Ilimitado';
+    if (value === -1 || value === 'unlimited' || value === 'Ilimitados') return 'Ilimitados';
+    if (value === 'infinite' || value === 'Ilimitado') return 'Ilimitado';
     return value;
   };
 
+  // Convertir el objeto features a un array para el renderizado
+  const featuresArray = [
+    { 
+      key: 'analytics', 
+      name: plan.features.analytics === true ? 'Estadísticas avanzadas' : 'Estadísticas básicas',
+      included: plan.features.analytics,
+      tooltip: featureExplanations.statistics
+    },
+    { 
+      key: 'videoCall', 
+      name: 'Videollamadas integradas',
+      included: plan.features.videoCall,
+      tooltip: featureExplanations.videoCalls
+    },
+    { 
+      key: 'branding', 
+      name: 'Sin marca de agua',
+      included: plan.features.branding,
+      tooltip: featureExplanations.noWatermark
+    },
+    { 
+      key: 'customDomain', 
+      name: 'Dominio personalizado',
+      included: plan.features.customDomain,
+      tooltip: featureExplanations.customDomain
+    },
+    { 
+      key: 'adminDashboard', 
+      name: 'Panel administrativo',
+      included: plan.features.adminDashboard,
+      tooltip: featureExplanations.adminPanel
+    },
+    { 
+      key: 'bulkInvites', 
+      name: 'Invitaciones masivas',
+      included: plan.features.bulkInvites,
+      tooltip: featureExplanations.massInvites
+    },
+    { 
+      key: 'reporting', 
+      name: 'Reportes y exportación',
+      included: plan.features.reporting,
+      tooltip: featureExplanations.reports
+    },
+  ];
+
+  const getSupportTooltip = (supportLevel) => {
+    if (supportLevel.includes('24/7') || supportLevel.includes('dedicado')) {
+      return featureExplanations.dedicatedSupport;
+    } else if (supportLevel.includes('prioritario') || supportLevel.includes('Chat')) {
+      return featureExplanations.prioritySupport;
+    } else {
+      return featureExplanations.emailSupport;
+    }
+  };
+
+  const displayPrice = currency === 'USD' ? plan.priceUSD : plan.price;
+  const currencySymbol = currency === 'USD' ? '$' : '$';
+
   return (
-    <div className={`pricing-card ${isPopular ? 'popular' : ''}`}>
-      {isPopular && <div className="popular-badge">Más Popular</div>}
+    <div className={`pricing-card ${plan.popular ? 'popular' : ''} ${isCurrentPlan ? 'current' : ''}`}>
+      {plan.popular && <div className="popular-badge">Más Popular</div>}
       
       <div className="card-header">
         <h3 className="plan-name">{plan.name}</h3>
-        <div className="price-container">
-          <span className="currency">$</span>
-          <span className="price">{plan.price.toLocaleString('es-CL')}</span>
-          <span className="period">/{plan.billingCycle}</span>
+        <div className="plan-price">
+          <span className="price-amount">
+            {currencySymbol}{displayPrice ? displayPrice.toLocaleString('es-CL') : '0'}
+          </span>
+          <span className="price-interval">
+            /{plan.interval === 'month' ? 'mes' : plan.interval === 'forever' ? 'siempre' : 'año'}
+          </span>
         </div>
+        {plan.trial && (
+          <div className="trial-badge">
+            {plan.trial} días de prueba gratis
+          </div>
+        )}
         <p className="plan-description">{plan.description}</p>
       </div>
 
-      <div className="card-body">
-        <div className="limits-section">
-          <h4 className="section-title">Características incluidas:</h4>
-          <ul className="limits-list">
-            <li className="limit-item">
-              <span className="limit-label">
-                Familias: 
-                <FeatureTooltip {...featureExplanations.families} />
-              </span>
-              <span className="limit-value">{formatLimit(plan.limits.families)}</span>
-            </li>
-            <li className="limit-item">
-              <span className="limit-label">
-                Miembros: 
-                <FeatureTooltip {...featureExplanations.members} />
-              </span>
-              <span className="limit-value">{formatLimit(plan.limits.members)}</span>
-            </li>
-            <li className="limit-item">
-              <span className="limit-label">
-                Publicaciones: 
-                <FeatureTooltip {...featureExplanations.posts} />
-              </span>
-              <span className="limit-value">{formatLimit(plan.limits.posts)}</span>
-            </li>
-            <li className="limit-item">
-              <span className="limit-label">
-                Almacenamiento: 
-                <FeatureTooltip {...featureExplanations.storage} />
-              </span>
-              <span className="limit-value">{plan.limits.storage}</span>
-            </li>
-            <li className="limit-item">
-              <span className="limit-label">
-                Duración de videos: 
-                <FeatureTooltip {...featureExplanations.videoDuration} />
-              </span>
-              <span className="limit-value">{plan.limits.videoDuration}</span>
-            </li>
-          </ul>
-        </div>
-
+      <div className="plan-features">
+        {/* Límites principales */}
         <div className="features-section">
-          <h4 className="section-title">Funciones:</h4>
-          <ul className="features-list">
-            {plan.features.map((feature, index) => (
-              <li key={index} className="feature-item">
-                {feature.included ? (
-                  <Check className="feature-icon check" size={18} />
-                ) : (
-                  <X className="feature-icon x" size={18} />
+          <h4 className="features-title">Características incluidas</h4>
+          <div className="feature included">
+            <Check className="feature-icon" size={20} />
+            <span className="feature-text">
+              <strong>Familias:</strong> {formatLimit(plan.features.families)}
+              <FeatureTooltip {...featureExplanations.families} />
+            </span>
+          </div>
+          <div className="feature included">
+            <Check className="feature-icon" size={20} />
+            <span className="feature-text">
+              <strong>Miembros:</strong> {formatLimit(plan.features.members)}
+              <FeatureTooltip {...featureExplanations.members} />
+            </span>
+          </div>
+          <div className="feature included">
+            <Check className="feature-icon" size={20} />
+            <span className="feature-text">
+              <strong>Publicaciones:</strong> {formatLimit(plan.features.posts)}
+              <FeatureTooltip {...featureExplanations.posts} />
+            </span>
+          </div>
+          <div className="feature included">
+            <Check className="feature-icon" size={20} />
+            <span className="feature-text">
+              <strong>Almacenamiento:</strong> {plan.features.storage}
+              <FeatureTooltip {...featureExplanations.storage} />
+            </span>
+          </div>
+          <div className="feature included">
+            <Check className="feature-icon" size={20} />
+            <span className="feature-text">
+              <strong>Videos:</strong> {plan.features.videoLength} seg
+              <FeatureTooltip {...featureExplanations.videoDuration} />
+            </span>
+          </div>
+        </div>
+
+        {/* Funciones avanzadas */}
+        <div className="features-section">
+          <h4 className="features-title">Funciones</h4>
+          {featuresArray.map((feature) => (
+            <div 
+              key={feature.key} 
+              className={`feature ${feature.included ? 'included' : 'excluded'}`}
+            >
+              {feature.included ? (
+                <Check className="feature-icon" size={20} />
+              ) : (
+                <X className="feature-icon" size={20} />
+              )}
+              <span className="feature-text">
+                {feature.name}
+                {feature.included && feature.tooltip && (
+                  <FeatureTooltip {...feature.tooltip} />
                 )}
-                <span className={feature.included ? '' : 'disabled'}>
-                  {feature.name}
-                  {feature.included && getFeatureTooltip(feature.name)}
-                </span>
-              </li>
-            ))}
-          </ul>
+              </span>
+            </div>
+          ))}
         </div>
 
-        <div className="support-section">
-          <h4 className="section-title">Soporte:</h4>
-          <p className="support-text">
-            Nivel de soporte: {plan.support.level}
-            {getSupportTooltip(plan.support.level)}
-          </p>
+        {/* Soporte */}
+        <div className="features-section">
+          <h4 className="features-title">Soporte</h4>
+          <div className="feature included">
+            <Check className="feature-icon" size={20} />
+            <span className="feature-text">
+              {plan.features.support}
+              <FeatureTooltip {...getSupportTooltip(plan.features.support)} />
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="card-footer">
-        <button 
-          className={`select-button ${isPopular ? 'popular' : ''}`}
-          onClick={handleSelectPlan}
-        >
-          Seleccionar {plan.name}
-        </button>
-      </div>
+      <button 
+        className={`plan-cta ${plan.popular ? 'popular' : ''} ${isCurrentPlan ? 'current' : ''}`}
+        onClick={handleSelectPlan}
+        disabled={isCurrentPlan}
+      >
+        {isCurrentPlan ? 'Plan Actual' : plan.cta || 'Seleccionar Plan'}
+      </button>
     </div>
   );
-}
-
-// Función auxiliar para obtener el tooltip correcto según el nombre de la función
-function getFeatureTooltip(featureName) {
-  const tooltipMap = {
-    'Estadísticas de uso': featureExplanations.statistics,
-    'Estadísticas básicas': featureExplanations.statistics,
-    'Estadísticas avanzadas': featureExplanations.statistics,
-    'Videollamadas integradas': featureExplanations.videoCalls,
-    'Sin marca de agua': featureExplanations.noWatermark,
-    'Dominio personalizado': featureExplanations.customDomain,
-    'Panel administrativo': featureExplanations.adminPanel,
-    'Invitaciones masivas': featureExplanations.massInvites,
-    'Reportes y exportación': featureExplanations.reports,
-  };
-
-  const explanation = tooltipMap[featureName];
-  return explanation ? <FeatureTooltip {...explanation} /> : null;
-}
-
-// Función auxiliar para obtener el tooltip de soporte
-function getSupportTooltip(supportLevel) {
-  if (supportLevel.includes('24/7')) {
-    return <FeatureTooltip {...featureExplanations.dedicatedSupport} />;
-  } else if (supportLevel.includes('24h')) {
-    return <FeatureTooltip {...featureExplanations.prioritySupport} />;
-  } else {
-    return <FeatureTooltip {...featureExplanations.emailSupport} />;
-  }
 }
